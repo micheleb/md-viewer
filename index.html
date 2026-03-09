@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MD Viewer</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" id="hljs-light">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-dark" disabled>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Fira+Code:wght@300..700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" id="hljs-light" disabled>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-dark">
   <style>
     :root {
       --bg: #ffffff;
@@ -53,7 +54,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      font-family: "Lora", Georgia, "Times New Roman", serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
@@ -207,20 +208,23 @@
     .content h4,
     .content h5,
     .content h6 {
-      margin-top: 24px;
+      margin-top: 40px;
       margin-bottom: 16px;
+      font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
       font-weight: 600;
       line-height: 1.25;
     }
 
-    .content h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
-    .content h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
-    .content h3 { font-size: 1.25em; }
-    .content h4 { font-size: 1em; }
-    .content h5 { font-size: 0.875em; }
-    .content h6 { font-size: 0.85em; color: var(--text-secondary); }
+    .content h1 { font-size: 2.4em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+    .content h2 { font-size: 1.8em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+    .content h3 { font-size: 1.5em; }
+    .content h4 { font-size: 1.2em; }
+    .content h5 { font-size: 1em; }
+    .content h6 { font-size: 0.95em; color: var(--text-secondary); }
 
-    .content h1:first-child { margin-top: 0; }
+    .content h1:first-child,
+    .content > .collapsible-section:first-child > h1 { margin-top: 0; }
+    .content > .frontmatter-card + .collapsible-section > h1 { margin-top: 0; }
 
     .content p {
       margin-bottom: 16px;
@@ -242,13 +246,14 @@
     }
 
     .content strong { font-weight: 600; }
+    [data-theme="dark"] .content strong { color: #c0d3f6; }
 
     .content code {
       background: var(--code-bg);
       padding: 0.2em 0.4em;
       border-radius: 6px;
       font-size: 85%;
-      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-family: "Fira Code", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     }
 
     .content pre {
@@ -330,6 +335,134 @@
     .content .task-list-item input[type="checkbox"] {
       margin-right: 0.5em;
       vertical-align: middle;
+    }
+
+    /* ---- Collapsible Sections ---- */
+    .collapsible-section > h1,
+    .collapsible-section > h2,
+    .collapsible-section > h3,
+    .collapsible-section > h4,
+    .collapsible-section > h5,
+    .collapsible-section > h6 {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      padding-left: 1.2em;
+    }
+
+    .collapsible-section > h1::before,
+    .collapsible-section > h2::before,
+    .collapsible-section > h3::before,
+    .collapsible-section > h4::before,
+    .collapsible-section > h5::before,
+    .collapsible-section > h6::before {
+      content: "▾";
+      position: absolute;
+      left: 0;
+      font-size: 0.6em;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: transform 0.2s ease;
+      color: var(--text-secondary);
+    }
+
+    .collapsible-section.collapsed > h1::before,
+    .collapsible-section.collapsed > h2::before,
+    .collapsible-section.collapsed > h3::before,
+    .collapsible-section.collapsed > h4::before,
+    .collapsible-section.collapsed > h5::before,
+    .collapsible-section.collapsed > h6::before {
+      transform: translateY(-50%) rotate(-90deg);
+    }
+
+    .collapsible-section > .section-body {
+      overflow: hidden;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+      opacity: 1;
+    }
+
+    .collapsible-section.collapsed > .section-body {
+      max-height: 0 !important;
+      opacity: 0;
+      overflow: hidden;
+    }
+
+    /* ---- Layout with TOC sidebar ---- */
+    .main-layout {
+      display: flex;
+      justify-content: center;
+      max-width: 1140px; /* 260 sidebar + 880 content area */
+      margin: 0 auto;
+    }
+
+    .toc-sidebar {
+      display: none;
+      position: sticky;
+      top: 49px; /* header height */
+      align-self: flex-start;
+      width: 260px;
+      min-width: 260px;
+      max-height: calc(100vh - 49px);
+      overflow-y: auto;
+      padding: 20px 16px;
+      border-right: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .toc-sidebar.visible {
+      display: block;
+    }
+
+    .toc-sidebar ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .toc-sidebar li {
+      margin: 0;
+    }
+
+    .toc-sidebar a {
+      display: block;
+      padding: 4px 8px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 4px;
+      line-height: 1.4;
+      transition: background 0.15s, color 0.15s;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .toc-sidebar a:hover {
+      background: var(--bg-secondary);
+      color: var(--text);
+    }
+
+    .toc-sidebar a.active {
+      background: var(--bg-secondary);
+      color: var(--link);
+      font-weight: 600;
+    }
+
+    .toc-sidebar .toc-level-1 a { padding-left: 8px; }
+    .toc-sidebar .toc-level-2 a { padding-left: 20px; }
+    .toc-sidebar .toc-level-3 a { padding-left: 32px; }
+    .toc-sidebar .toc-level-4 a { padding-left: 44px; }
+    .toc-sidebar .toc-level-5 a { padding-left: 56px; }
+    .toc-sidebar .toc-level-6 a { padding-left: 68px; }
+
+    /* Content takes remaining space and stays centered */
+    .main-layout .content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .main-layout.has-toc .content {
+      margin-left: 0;
+      margin-right: 0;
     }
 
     /* ---- Drag overlay ---- */
@@ -437,6 +570,12 @@
     }
 
     /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      .toc-sidebar {
+        display: none !important;
+      }
+    }
+
     @media (max-width: 600px) {
       .header { padding: 10px 16px; }
       .content { padding: 20px 16px 48px; }
@@ -455,7 +594,7 @@
         <button class="change-file" id="changeFileBtn" type="button">change file</button>
       </div>
     </div>
-    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">🌙</button>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode">☀️</button>
   </header>
 
   <div class="drop-zone-container" id="dropZoneContainer">
@@ -468,7 +607,10 @@
     <input type="file" id="fileInput" accept=".md,.markdown,.txt" hidden>
   </div>
 
-  <div class="content" id="content"></div>
+  <div class="main-layout" id="mainLayout">
+    <nav class="toc-sidebar" id="tocSidebar"></nav>
+    <div class="content" id="content"></div>
+  </div>
 
   <div class="drag-overlay" id="dragOverlay"></div>
 
@@ -490,6 +632,19 @@
       const dragOverlay = document.getElementById('dragOverlay');
       const hljsLight = document.getElementById('hljs-light');
       const hljsDark = document.getElementById('hljs-dark');
+      const tocSidebar = document.getElementById('tocSidebar');
+      const mainLayout = document.getElementById('mainLayout');
+
+      // ---- TOC smooth scroll (delegated, set up once) ----
+      tocSidebar.addEventListener('click', function (e) {
+        var link = e.target.closest('a[data-target]');
+        if (!link) return;
+        e.preventDefault();
+        var target = document.getElementById(link.getAttribute('data-target'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
 
       // ---- Markdown-it setup ----
       const md = window.markdownit({
@@ -583,11 +738,173 @@
         return parts.join('');
       }
 
+      // ---- Collapsible sections ----
+      function headingLevel(el) {
+        var m = el.tagName && el.tagName.match(/^H([1-6])$/i);
+        return m ? parseInt(m[1], 10) : 0;
+      }
+
+      function wrapSections(container) {
+        // Collect all direct children into an array
+        var nodes = Array.from(container.childNodes);
+        var fragment = document.createDocumentFragment();
+        var stack = []; // stack of { section, bodyEl, level }
+
+        nodes.forEach(function (node) {
+          var level = node.nodeType === 1 ? headingLevel(node) : 0;
+
+          if (level > 0) {
+            // Pop sections from stack that are same level or deeper
+            while (stack.length > 0 && stack[stack.length - 1].level >= level) {
+              stack.pop();
+            }
+
+            // Create a new collapsible section
+            var section = document.createElement('div');
+            section.className = 'collapsible-section';
+            section.setAttribute('data-level', level);
+
+            var bodyEl = document.createElement('div');
+            bodyEl.className = 'section-body';
+
+            section.appendChild(node);
+            section.appendChild(bodyEl);
+
+            // If there's a parent section, add to its body; otherwise add to fragment
+            if (stack.length > 0) {
+              stack[stack.length - 1].bodyEl.appendChild(section);
+            } else {
+              fragment.appendChild(section);
+            }
+
+            stack.push({ section: section, bodyEl: bodyEl, level: level });
+          } else {
+            // Non-heading content — add to current section body or to fragment
+            if (stack.length > 0) {
+              stack[stack.length - 1].bodyEl.appendChild(node);
+            } else {
+              fragment.appendChild(node);
+            }
+          }
+        });
+
+        container.innerHTML = '';
+        container.appendChild(fragment);
+
+        // Add click handlers for headings
+        container.addEventListener('click', function (e) {
+          var heading = e.target.closest('h1, h2, h3, h4, h5, h6');
+          if (!heading) return;
+          var section = heading.parentElement;
+          if (!section || !section.classList.contains('collapsible-section')) return;
+          // Don't toggle if clicking a link inside a heading
+          if (e.target.tagName === 'A') return;
+          section.classList.toggle('collapsed');
+        });
+      }
+
+      // ---- TOC sidebar ----
+      var tocObserver = null;
+
+      function slugify(text) {
+        return text.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+
+      function buildTOC() {
+        var headings = contentEl.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        if (headings.length === 0) {
+          tocSidebar.classList.remove('visible');
+          mainLayout.classList.remove('has-toc');
+          return;
+        }
+
+        // Assign IDs to headings
+        var usedIds = {};
+        headings.forEach(function (h) {
+          if (!h.id) {
+            var base = slugify(h.textContent);
+            var id = base || 'section';
+            var counter = 1;
+            while (usedIds[id]) {
+              id = base + '-' + counter;
+              counter++;
+            }
+            h.id = id;
+            usedIds[id] = true;
+          } else {
+            usedIds[h.id] = true;
+          }
+        });
+
+        // Build flat list of TOC items
+        var html = '<ul>';
+        headings.forEach(function (h) {
+          var level = headingLevel(h);
+          html += '<li class="toc-level-' + level + '">';
+          html += '<a href="#' + h.id + '" data-target="' + h.id + '">';
+          html += escapeHtml(h.textContent);
+          html += '</a></li>';
+        });
+        html += '</ul>';
+
+        tocSidebar.innerHTML = html;
+        tocSidebar.classList.add('visible');
+        mainLayout.classList.add('has-toc');
+
+        // Scroll spy via IntersectionObserver
+        if (tocObserver) {
+          tocObserver.disconnect();
+        }
+
+        var tocLinks = tocSidebar.querySelectorAll('a[data-target]');
+        var activeLink = null;
+
+        tocObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              if (activeLink) activeLink.classList.remove('active');
+              var link = tocSidebar.querySelector('a[data-target="' + entry.target.id + '"]');
+              if (link) {
+                link.classList.add('active');
+                activeLink = link;
+              }
+            }
+          });
+        }, {
+          rootMargin: '0px 0px -70% 0px',
+          threshold: 0
+        });
+
+        headings.forEach(function (h) {
+          tocObserver.observe(h);
+        });
+      }
+
       // ---- Render ----
       function renderMarkdown(text, name) {
         var result = parseFrontmatter(text);
         var cardHtml = result.meta ? buildFrontmatterCard(result.meta) : '';
         contentEl.innerHTML = cardHtml + md.render(result.body);
+
+        // Wrap sections for collapsible behavior (skip frontmatter card)
+        // We need to wrap only the markdown-rendered content, not the frontmatter card
+        // Strategy: extract frontmatter card, wrap sections on the rest, then re-prepend
+        var frontmatterCard = contentEl.querySelector('.frontmatter-card');
+        if (frontmatterCard) {
+          frontmatterCard.remove();
+        }
+        wrapSections(contentEl);
+        if (frontmatterCard) {
+          contentEl.insertBefore(frontmatterCard, contentEl.firstChild);
+        }
+
+        // Build TOC sidebar
+        buildTOC();
+
         contentEl.classList.add('visible');
         dropZoneContainer.classList.add('collapsed');
 
@@ -708,10 +1025,10 @@
       const saved = localStorage.getItem('md-viewer-theme');
       if (saved) {
         setTheme(saved);
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setTheme('dark');
-      } else {
+      } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
         setTheme('light');
+      } else {
+        setTheme('dark');
       }
     })();
   </script>
