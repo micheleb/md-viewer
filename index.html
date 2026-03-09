@@ -356,6 +356,86 @@
       margin-top: 12px;
     }
 
+    /* ---- Frontmatter Metadata Card ---- */
+    .frontmatter-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-secondary);
+      padding: 20px 24px;
+      margin-bottom: 24px;
+    }
+
+    .frontmatter-card .fm-title {
+      font-size: 1.4em;
+      font-weight: 600;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .frontmatter-card .fm-fields {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin-bottom: 4px;
+    }
+
+    .frontmatter-card .fm-field {
+      font-size: 14px;
+    }
+
+    .frontmatter-card .fm-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-right: 4px;
+    }
+
+    .frontmatter-card .fm-label::after {
+      content: ":";
+    }
+
+    .frontmatter-card .fm-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .frontmatter-card .fm-tag {
+      display: inline-block;
+      background: var(--link);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 10px;
+      border-radius: 12px;
+      line-height: 1.6;
+    }
+
+    [data-theme="dark"] .frontmatter-card .fm-tag {
+      background: rgba(88, 166, 255, 0.2);
+      color: var(--link);
+    }
+
+    .frontmatter-card .fm-list-section {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .frontmatter-card .fm-list-section .fm-label {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .frontmatter-card .fm-list-section ul {
+      padding-left: 1.5em;
+      margin: 0;
+    }
+
+    .frontmatter-card .fm-list-section li {
+      margin-bottom: 2px;
+    }
+
     /* ---- Responsive ---- */
     @media (max-width: 600px) {
       .header { padding: 10px 16px; }
@@ -392,6 +472,7 @@
 
   <div class="drag-overlay" id="dragOverlay"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.1/dist/markdown-it.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/markdown-it-task-lists@2.1.1/dist/markdown-it-task-lists.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
@@ -429,9 +510,84 @@
 
       let hasFile = false;
 
+      // ---- Frontmatter helpers ----
+      function parseFrontmatter(text) {
+        if (!text.startsWith('---\n') && !text.startsWith('---\r\n')) return { meta: null, body: text };
+        var end = text.indexOf('\n---', 3);
+        if (end === -1) return { meta: null, body: text };
+        var yamlStr = text.substring(4, end);
+        var body = text.substring(end + 4).replace(/^\r?\n/, '');
+        try {
+          var meta = jsyaml.load(yamlStr);
+          if (meta && typeof meta === 'object' && !Array.isArray(meta)) return { meta: meta, body: body };
+        } catch (_) { /* invalid YAML, treat as regular content */ }
+        return { meta: null, body: text };
+      }
+
+      function toTitleCase(str) {
+        return str.replace(/[_-]/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function buildFrontmatterCard(meta) {
+        var parts = [];
+        var scalars = [];
+        var tags = null;
+        var lists = [];
+
+        Object.keys(meta).forEach(function (key) {
+          var val = meta[key];
+          if (key === 'title') return; // handled separately
+          if (key === 'tags' && Array.isArray(val)) {
+            tags = val;
+          } else if (Array.isArray(val)) {
+            lists.push({ key: key, items: val });
+          } else if (val !== null && val !== undefined && typeof val !== 'object') {
+            scalars.push({ key: key, value: String(val) });
+          }
+        });
+
+        parts.push('<div class="frontmatter-card">');
+        if (meta.title) {
+          parts.push('<div class="fm-title">' + escapeHtml(String(meta.title)) + '</div>');
+        }
+        if (scalars.length) {
+          parts.push('<div class="fm-fields">');
+          scalars.forEach(function (s) {
+            parts.push('<span class="fm-field"><span class="fm-label">' + escapeHtml(toTitleCase(s.key)) + '</span>' + escapeHtml(s.value) + '</span>');
+          });
+          parts.push('</div>');
+        }
+        if (tags) {
+          parts.push('<div class="fm-tags">');
+          tags.forEach(function (t) {
+            parts.push('<span class="fm-tag">' + escapeHtml(String(t)) + '</span>');
+          });
+          parts.push('</div>');
+        }
+        lists.forEach(function (l) {
+          parts.push('<div class="fm-list-section">');
+          parts.push('<span class="fm-label">' + escapeHtml(toTitleCase(l.key)) + '</span>');
+          parts.push('<ul>');
+          l.items.forEach(function (item) {
+            parts.push('<li>' + escapeHtml(String(item)) + '</li>');
+          });
+          parts.push('</ul></div>');
+        });
+        parts.push('</div>');
+        return parts.join('');
+      }
+
       // ---- Render ----
       function renderMarkdown(text, name) {
-        contentEl.innerHTML = md.render(text);
+        var result = parseFrontmatter(text);
+        var cardHtml = result.meta ? buildFrontmatterCard(result.meta) : '';
+        contentEl.innerHTML = cardHtml + md.render(result.body);
         contentEl.classList.add('visible');
         dropZoneContainer.classList.add('collapsed');
 
