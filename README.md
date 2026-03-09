@@ -15,15 +15,9 @@ A single static HTML page that renders Markdown files client-side. Host it anywh
 
 ## Usage
 
-Open `index.html` in a browser. That's it.
+**Go to [micheleb.github.io/md-viewer](https://micheleb.github.io/md-viewer/)** and drop a file in.
 
-Or serve it from any static host:
-
-```bash
-npx serve .
-# or
-python3 -m http.server
-```
+Or clone / download the repo and open `index.html` directly in your browser -- no server needed.
 
 ## Tech Stack
 
