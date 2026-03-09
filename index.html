@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MD Viewer</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Fira+Code:wght@300..700&family=Lora:ital,wght@0,400..700;1,400..700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400..700&family=Fira+Code:wght@400;500&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css" id="hljs-light" disabled>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-dark">
   <style>
@@ -54,11 +54,14 @@
     }
 
     body {
-      font-family: "Lora", Georgia, "Times New Roman", serif;
+      font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 17px;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.7;
       transition: background 0.2s, color 0.2s;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* ---- Header ---- */
@@ -208,19 +211,20 @@
     .content h4,
     .content h5,
     .content h6 {
-      margin-top: 40px;
-      margin-bottom: 16px;
+      margin-top: 32px;
+      margin-bottom: 12px;
       font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
       font-weight: 600;
-      line-height: 1.25;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
     }
 
-    .content h1 { font-size: 2.4em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
-    .content h2 { font-size: 1.8em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
-    .content h3 { font-size: 1.5em; }
-    .content h4 { font-size: 1.2em; }
+    .content h1 { font-size: 2.1em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+    .content h2 { font-size: 1.6em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+    .content h3 { font-size: 1.3em; }
+    .content h4 { font-size: 1.15em; }
     .content h5 { font-size: 1em; }
-    .content h6 { font-size: 0.95em; color: var(--text-secondary); }
+    .content h6 { font-size: 0.9em; color: var(--text-secondary); }
 
     .content h1:first-child,
     .content > .collapsible-section:first-child > h1 { margin-top: 0; }
@@ -246,14 +250,15 @@
     }
 
     .content strong { font-weight: 600; }
-    [data-theme="dark"] .content strong { color: #c0d3f6; }
+    [data-theme="dark"] .content strong { color: #f0f3f6; }
 
     .content code {
       background: var(--code-bg);
-      padding: 0.2em 0.4em;
-      border-radius: 6px;
-      font-size: 85%;
+      padding: 0.15em 0.35em;
+      border-radius: 4px;
+      font-size: 82%;
       font-family: "Fira Code", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      border: 1px solid var(--border);
     }
 
     .content pre {
@@ -269,8 +274,9 @@
       background: none;
       padding: 0;
       border-radius: 0;
+      border: none;
       font-size: 85%;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .content blockquote {
@@ -287,7 +293,7 @@
     }
 
     .content li {
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .content li > ul,
@@ -347,7 +353,7 @@
       cursor: pointer;
       user-select: none;
       position: relative;
-      padding-left: 1.2em;
+      padding-left: 24px;
     }
 
     .collapsible-section > h1::before,
@@ -356,14 +362,17 @@
     .collapsible-section > h4::before,
     .collapsible-section > h5::before,
     .collapsible-section > h6::before {
-      content: "▾";
+      content: "";
       position: absolute;
-      left: 0;
-      font-size: 0.6em;
+      left: 4px;
       top: 50%;
-      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 5px 0 5px 7px;
+      border-color: transparent transparent transparent var(--text-secondary);
+      transform: translateY(-50%) rotate(90deg);
       transition: transform 0.2s ease;
-      color: var(--text-secondary);
     }
 
     .collapsible-section.collapsed > h1::before,
@@ -372,7 +381,7 @@
     .collapsible-section.collapsed > h4::before,
     .collapsible-section.collapsed > h5::before,
     .collapsible-section.collapsed > h6::before {
-      transform: translateY(-50%) rotate(-90deg);
+      transform: translateY(-50%) rotate(0deg);
     }
 
     .collapsible-section > .section-body {
@@ -429,7 +438,8 @@
       color: var(--text-secondary);
       text-decoration: none;
       border-radius: 4px;
-      line-height: 1.4;
+      line-height: 1.5;
+      font-size: 13px;
       transition: background 0.15s, color 0.15s;
       overflow: hidden;
       text-overflow: ellipsis;
