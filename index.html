@@ -128,6 +128,27 @@
       text-decoration: underline;
     }
 
+    .file-info .reload-file {
+      display: none;
+      color: var(--link);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 15px;
+      white-space: nowrap;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0 2px;
+    }
+
+    .file-info .reload-file:hover {
+      text-decoration: underline;
+    }
+
+    .file-info .reload-file.visible {
+      display: inline;
+    }
+
     .theme-toggle {
       background: none;
       border: 1px solid var(--border);
@@ -666,7 +687,9 @@
       <div class="file-info" id="fileInfo">
         <span class="separator">/</span>
         <span class="filename" id="fileName"></span>
+        <button class="reload-file" id="reloadBtn" type="button" title="Reload file from disk">&#x21bb;</button>
         <button class="change-file" id="changeFileBtn" type="button">change file</button>
+        <button class="change-file" id="pasteBtn" type="button">paste</button>
       </div>
     </div>
     <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode">☀️</button>
@@ -715,6 +738,10 @@
       const mainLayout = document.getElementById('mainLayout');
       const mdTextarea = document.getElementById('mdTextarea');
       const renderBtn = document.getElementById('renderBtn');
+      const reloadBtn = document.getElementById('reloadBtn');
+      const pasteBtn = document.getElementById('pasteBtn');
+
+      let currentFileHandle = null;
 
       // ---- TOC smooth scroll (delegated, set up once) ----
       tocSidebar.addEventListener('click', function (e) {
@@ -998,6 +1025,8 @@
 
       // ---- File reading ----
       function readFile(file) {
+        currentFileHandle = null;
+        reloadBtn.classList.remove('visible');
         const reader = new FileReader();
         reader.onload = function (e) {
           renderMarkdown(e.target.result, file.name);
@@ -1005,15 +1034,57 @@
         reader.readAsText(file);
       }
 
+      async function readFromHandle(handle) {
+        currentFileHandle = handle;
+        var file = await handle.getFile();
+        var text = await file.text();
+        renderMarkdown(text, file.name);
+        reloadBtn.classList.add('visible');
+      }
+
+      async function openFileWithPicker() {
+        if (window.showOpenFilePicker) {
+          try {
+            var handles = await window.showOpenFilePicker({
+              types: [{
+                description: 'Markdown files',
+                accept: { 'text/markdown': ['.md', '.markdown'], 'text/plain': ['.txt'] }
+              }],
+              multiple: false
+            });
+            await readFromHandle(handles[0]);
+            return;
+          } catch (err) {
+            if (err.name === 'AbortError') return;
+          }
+        }
+        fileInput.value = '';
+        fileInput.click();
+      }
+
+      async function handleFileDrop(dataTransfer) {
+        if (!dataTransfer.files.length) return;
+        if (dataTransfer.items && dataTransfer.items[0].getAsFileSystemHandle) {
+          try {
+            var handle = await dataTransfer.items[0].getAsFileSystemHandle();
+            if (handle.kind === 'file') {
+              await readFromHandle(handle);
+              return;
+            }
+          } catch (_) { /* fall through */ }
+        }
+        readFile(dataTransfer.files[0]);
+      }
+
       // ---- Drop zone click ----
       dropZone.addEventListener('click', function () {
-        fileInput.click();
+        openFileWithPicker();
       });
 
       dropZone.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          fileInput.click();
+          openFileWithPicker();
         }
       });
 
@@ -1025,8 +1096,7 @@
 
       // ---- Change file ----
       changeFileBtn.addEventListener('click', function () {
-        fileInput.value = '';
-        fileInput.click();
+        openFileWithPicker();
       });
 
       // ---- Drag and drop on drop zone ----
@@ -1042,9 +1112,7 @@
       dropZone.addEventListener('drop', function (e) {
         e.preventDefault();
         dropZone.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) {
-          readFile(e.dataTransfer.files[0]);
-        }
+        handleFileDrop(e.dataTransfer);
       });
 
       // ---- Global drag and drop (when content is showing) ----
@@ -1074,9 +1142,7 @@
         e.preventDefault();
         dragCounter = 0;
         dragOverlay.classList.remove('visible');
-        if (e.dataTransfer.files.length) {
-          readFile(e.dataTransfer.files[0]);
-        }
+        handleFileDrop(e.dataTransfer);
       });
 
       // ---- Clipboard paste ----
@@ -1084,6 +1150,8 @@
         if (e.target === mdTextarea) return;
         const text = e.clipboardData.getData('text/plain');
         if (text) {
+          currentFileHandle = null;
+          reloadBtn.classList.remove('visible');
           renderMarkdown(text, 'Pasted content');
         }
       });
@@ -1092,6 +1160,8 @@
       renderBtn.addEventListener('click', function () {
         var text = mdTextarea.value.trim();
         if (text) {
+          currentFileHandle = null;
+          reloadBtn.classList.remove('visible');
           renderMarkdown(text, 'Pasted content');
         }
       });
@@ -1101,9 +1171,35 @@
           e.preventDefault();
           var text = mdTextarea.value.trim();
           if (text) {
+            currentFileHandle = null;
+            reloadBtn.classList.remove('visible');
             renderMarkdown(text, 'Pasted content');
           }
         }
+      });
+
+      // ---- Reload file ----
+      reloadBtn.addEventListener('click', async function () {
+        if (!currentFileHandle) return;
+        try {
+          await readFromHandle(currentFileHandle);
+        } catch (err) {
+          currentFileHandle = null;
+          reloadBtn.classList.remove('visible');
+        }
+      });
+
+      // ---- Back to paste/import view ----
+      pasteBtn.addEventListener('click', function () {
+        contentEl.classList.remove('visible');
+        dropZoneContainer.classList.remove('collapsed');
+        tocSidebar.classList.remove('visible');
+        mainLayout.classList.remove('has-toc');
+        if (tocObserver) tocObserver.disconnect();
+        hasFile = false;
+        currentFileHandle = null;
+        reloadBtn.classList.remove('visible');
+        fileInfo.classList.remove('visible');
       });
 
       // ---- Theme toggle ----
