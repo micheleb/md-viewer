@@ -301,6 +301,13 @@
       line-height: 1.5;
     }
 
+    .content pre.mermaid {
+      background: none;
+      border: none;
+      text-align: center;
+      overflow-x: auto;
+    }
+
     .content blockquote {
       border-left: 4px solid var(--blockquote-border);
       padding: 0 16px;
@@ -720,8 +727,25 @@
   <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.1/dist/markdown-it.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/markdown-it-task-lists@2.1.1/dist/markdown-it-task-lists.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <script>
     (function () {
+      // ---- Mermaid init ----
+      function getMermaidTheme() {
+        return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+      }
+      mermaid.initialize({ startOnLoad: false, theme: getMermaidTheme() });
+
+      async function renderMermaidBlocks() {
+        var blocks = document.querySelectorAll('pre.mermaid');
+        if (!blocks.length) return;
+        // Re-init with current theme
+        mermaid.initialize({ startOnLoad: false, theme: getMermaidTheme() });
+        // Clear any prior render IDs so mermaid re-renders
+        blocks.forEach(function (block) { block.removeAttribute('data-processed'); });
+        await mermaid.run({ nodes: blocks });
+      }
+
       // ---- Elements ----
       const dropZoneContainer = document.getElementById('dropZoneContainer');
       const dropZone = document.getElementById('dropZone');
@@ -760,6 +784,9 @@
         linkify: true,
         typographer: true,
         highlight: function (str, lang) {
+          if (lang === 'mermaid') {
+            return '<pre class="mermaid">' + str + '</pre>';
+          }
           if (lang && hljs.getLanguage(lang)) {
             try {
               return '<pre class="hljs"><code>' +
@@ -1021,6 +1048,7 @@
           fileInfo.classList.add('visible');
         }
         hasFile = true;
+        renderMermaidBlocks();
       }
 
       // ---- File reading ----
@@ -1210,6 +1238,7 @@
         hljsLight.disabled = theme === 'dark';
         hljsDark.disabled = theme === 'light';
         localStorage.setItem('md-viewer-theme', theme);
+        if (hasFile) renderMermaidBlocks();
       }
 
       themeToggle.addEventListener('click', function () {
